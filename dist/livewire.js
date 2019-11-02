@@ -5536,7 +5536,19 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
       case 'keyup':
         this.attachListener(el, directive, component, function (e) {
           // Only handle listener if no, or matching key modifiers are passed.
-          return !(directive.modifiers.length === 0 || directive.modifiers.includes(Object(_util__WEBPACK_IMPORTED_MODULE_0__["kebabCase"])(e.key)));
+          if (directive.modifiers.length === 0) {
+            return false;
+          }
+
+          if (directive.modifiers.includes(Object(_util__WEBPACK_IMPORTED_MODULE_0__["kebabCase"])(e.key))) {
+            if (directive.modifiers.includes('ctrlkey') && !e.ctrlKey) {
+              return true;
+            }
+
+            return false;
+          }
+
+          return true;
         });
         break;
 

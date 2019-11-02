@@ -1,4 +1,4 @@
-import { kebabCase } from '@/util'
+import {kebabCase} from '@/util'
 import ModelAction from '@/action/model'
 import MethodAction from '@/action/method'
 import DOMElement from '@/dom/dom_element'
@@ -57,7 +57,7 @@ export default {
 
             // If it's a text input and not .lazy, debounce, otherwise fire immediately.
             const event = isLazy ? 'change' : defaultEventType
-            const handler = debounceIf(hasDebounceModifier || (el.isTextInput() && ! isLazy), e => {
+            const handler = debounceIf(hasDebounceModifier || (el.isTextInput() && !isLazy), e => {
                 const model = directive.value
                 const el = new DOMElement(e.target)
                 const value = el.valueFromInput(component)
@@ -79,9 +79,17 @@ export default {
             case 'keyup':
                 this.attachListener(el, directive, component, (e) => {
                     // Only handle listener if no, or matching key modifiers are passed.
-                    return ! (directive.modifiers.length === 0
-                        || directive.modifiers.includes(kebabCase(e.key)))
-                })
+                    if (directive.modifiers.length === 0) {
+                        return false;
+                    }
+                    if (directive.modifiers.includes(kebabCase(e.key))) {
+                        if (directive.modifiers.includes('ctrlkey') && !e.ctrlKey) {
+                            return true;
+                        }
+                        return false;
+                    }
+                    return true;
+                });
                 break;
             default:
                 this.attachListener(el, directive, component)
@@ -95,7 +103,6 @@ export default {
                 component.addPrefetchAction(new MethodAction(directive.method, directive.params, el))
             })
         }
-
         const event = directive.type
         const handler = e => {
             if (callback && callback(e) !== false) {
