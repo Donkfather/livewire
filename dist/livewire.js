@@ -1618,6 +1618,373 @@ if (!self.fetch) {
 
 /***/ }),
 
+/***/ "./src/js/Component/DirtyStates.js":
+/*!*****************************************!*\
+  !*** ./src/js/Component/DirtyStates.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _dom_dom_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/dom/dom_element */ "./src/js/dom/dom_element.js");
+/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function () {
+  _Store__WEBPACK_IMPORTED_MODULE_1__["default"].registerHook('componentInitialized', function (component) {
+    component.dirtyElsByRef = {};
+    component.dirtyEls = [];
+    registerListener(component);
+  });
+  _Store__WEBPACK_IMPORTED_MODULE_1__["default"].registerHook('elementInitialized', function (el, component) {
+    if (el.directives.missing('dirty')) return;
+    var refNames = el.directives.has('target') && el.directives.get('target').value.split(',').map(function (s) {
+      return s.trim();
+    });
+    addDirtyEls(component, el, refNames);
+  });
+});
+
+function addDirtyEls(component, el, targetRefs) {
+  if (targetRefs) {
+    targetRefs.forEach(function (targetRef) {
+      if (component.dirtyElsByRef[targetRef]) {
+        component.dirtyElsByRef[targetRef].push(el);
+      } else {
+        component.dirtyElsByRef[targetRef] = [el];
+      }
+    });
+  } else {
+    component.dirtyEls.push(el);
+  }
+}
+
+function registerListener(component) {
+  component.el.addEventListener('input', function (e) {
+    var el = new _dom_dom_element__WEBPACK_IMPORTED_MODULE_0__["default"](e.target);
+    var allEls = [];
+
+    if (el.directives.has('ref') && component.dirtyElsByRef[el.directives.get('ref').value]) {
+      allEls.push.apply(allEls, _toConsumableArray(component.dirtyElsByRef[el.directives.get('ref').value]));
+    }
+
+    if (el.directives.has('dirty')) {
+      allEls.push.apply(allEls, _toConsumableArray(component.dirtyEls.filter(function (dirtyEl) {
+        return dirtyEl.directives.get('model').value === el.directives.get('model').value;
+      })));
+    }
+
+    if (allEls.length < 1) return;
+
+    if (el.directives.missing('model')) {
+      console.warn('`wire:model` must be present on any element that uses `wire:dirty` or is a `wire:dirty` target.');
+    }
+
+    var isDirty = el.valueFromInput(component) != component.data[el.directives.get('model').value];
+    allEls.forEach(function (el) {
+      setDirtyState(el, isDirty);
+    });
+  });
+}
+
+function setDirtyState(el, isDirty) {
+  var directive = el.directives.get('dirty');
+
+  if (directive.modifiers.includes('class')) {
+    var classes = directive.value.split(' ');
+
+    if (directive.modifiers.includes('remove') !== isDirty) {
+      var _el$classList;
+
+      (_el$classList = el.classList).add.apply(_el$classList, _toConsumableArray(classes));
+    } else {
+      var _el$classList2;
+
+      (_el$classList2 = el.classList).remove.apply(_el$classList2, _toConsumableArray(classes));
+    }
+  } else if (directive.modifiers.includes('attr')) {
+    if (directive.modifiers.includes('remove') !== isDirty) {
+      el.setAttribute(directive.value, true);
+    } else {
+      el.removeAttrsibute(directive.value);
+    }
+  } else if (!el.directives.get('model')) {
+    el.el.style.display = isDirty ? 'inline-block' : 'none';
+  }
+}
+
+/***/ }),
+
+/***/ "./src/js/Component/LoadingStates.js":
+/*!*******************************************!*\
+  !*** ./src/js/Component/LoadingStates.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function () {
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('componentInitialized', function (component) {
+    component.loadingElsByRef = {};
+    component.loadingEls = [];
+    component.currentlyActiveLoadingEls = [];
+  });
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementInitialized', function (el, component) {
+    if (el.directives.missing('loading')) return;
+    var directive = el.directives.get('loading');
+    var refNames = el.directives.get('target') && el.directives.get('target').value.split(',').map(function (s) {
+      return s.trim();
+    });
+    addLoadingEl(component, el, directive.value, refNames, directive.modifiers.includes('remove'));
+  });
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('messageSent', function (component, message) {
+    setLoading(component, message.refs);
+  });
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('messageFailed', function (component) {
+    unsetLoading(component);
+  });
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('responseReceived', function (component) {
+    unsetLoading(component);
+  });
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementRemoved', function (el, component) {
+    removeLoadingEl(component, el);
+  });
+});
+
+function addLoadingEl(component, el, value, targetNames, remove) {
+  if (targetNames) {
+    targetNames.forEach(function (targetNames) {
+      if (component.loadingElsByRef[targetNames]) {
+        component.loadingElsByRef[targetNames].push({
+          el: el,
+          value: value,
+          remove: remove
+        });
+      } else {
+        component.loadingElsByRef[targetNames] = [{
+          el: el,
+          value: value,
+          remove: remove
+        }];
+      }
+    });
+  } else {
+    component.loadingEls.push({
+      el: el,
+      value: value,
+      remove: remove
+    });
+  }
+}
+
+function removeLoadingEl(component, el) {
+  component.loadingEls = component.loadingEls.filter(function (loadingEl) {
+    return !loadingEl.el.isSameNode(el);
+  });
+
+  if (el.ref in component.loadingElsByRef) {
+    delete component.loadingElsByRef[el.ref];
+  }
+}
+
+function setLoading(component, refs) {
+  var refEls = refs.map(function (ref) {
+    return component.loadingElsByRef[ref];
+  }).filter(function (el) {
+    return el;
+  }).flat();
+  var allEls = component.loadingEls.concat(refEls);
+  allEls.forEach(function (el) {
+    var directive = el.el.directives.get('loading');
+    el = el.el.el; // I'm so sorry @todo
+
+    if (directive.modifiers.includes('class')) {
+      // This is because wire:loading.class="border border-red"
+      // wouldn't work with classList.add.
+      var classes = directive.value.split(' ');
+
+      if (directive.modifiers.includes('remove')) {
+        var _el$classList;
+
+        (_el$classList = el.classList).remove.apply(_el$classList, _toConsumableArray(classes));
+      } else {
+        var _el$classList2;
+
+        (_el$classList2 = el.classList).add.apply(_el$classList2, _toConsumableArray(classes));
+      }
+    } else if (directive.modifiers.includes('attr')) {
+      if (directive.modifiers.includes('remove')) {
+        el.removeAttribute(directive.value);
+      } else {
+        el.setAttribute(directive.value, true);
+      }
+    } else {
+      el.style.display = 'inline-block';
+    }
+  });
+  component.currentlyActiveLoadingEls = allEls;
+}
+
+function unsetLoading(component) {
+  component.currentlyActiveLoadingEls.forEach(function (el) {
+    var directive = el.el.directives.get('loading');
+    el = el.el.el; // I'm so sorry @todo
+
+    if (directive.modifiers.includes('class')) {
+      var classes = directive.value.split(' ');
+
+      if (directive.modifiers.includes('remove')) {
+        var _el$classList3;
+
+        (_el$classList3 = el.classList).add.apply(_el$classList3, _toConsumableArray(classes));
+      } else {
+        var _el$classList4;
+
+        (_el$classList4 = el.classList).remove.apply(_el$classList4, _toConsumableArray(classes));
+      }
+    } else if (directive.modifiers.includes('attr')) {
+      if (directive.modifiers.includes('remove')) {
+        el.setAttribute(directive.value);
+      } else {
+        el.removeAttribute(directive.value, true);
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  });
+  component.currentlyActiveLoadingEls = [];
+}
+
+/***/ }),
+
+/***/ "./src/js/Component/OfflineStates.js":
+/*!*******************************************!*\
+  !*** ./src/js/Component/OfflineStates.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+
+var offlineEls = [];
+/* harmony default export */ __webpack_exports__["default"] = (function () {
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementInitialized', function (el) {
+    if (el.directives.missing('offline')) return;
+    offlineEls.push(el);
+  });
+  window.addEventListener('offline', function () {
+    _Store__WEBPACK_IMPORTED_MODULE_0__["default"].livewireIsOffline = true;
+    offlineEls.forEach(function (el) {
+      toggleOffline(el, true);
+    });
+  });
+  window.addEventListener('online', function () {
+    _Store__WEBPACK_IMPORTED_MODULE_0__["default"].livewireIsOffline = false;
+    offlineEls.forEach(function (el) {
+      toggleOffline(el, false);
+    });
+  });
+  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementRemoved', function (el) {
+    offlineEls = offlineEls.filter(function (el) {
+      return !el.isSameNode(el);
+    });
+  });
+});
+
+function toggleOffline(el, isOffline) {
+  var directive = el.directives.get('offline');
+
+  if (directive.modifiers.includes('class')) {
+    var classes = directive.value.split(' ');
+
+    if (directive.modifiers.includes('remove') !== isOffline) {
+      var _el$rawNode$classList;
+
+      (_el$rawNode$classList = el.rawNode().classList).add.apply(_el$rawNode$classList, _toConsumableArray(classes));
+    } else {
+      var _el$rawNode$classList2;
+
+      (_el$rawNode$classList2 = el.rawNode().classList).remove.apply(_el$rawNode$classList2, _toConsumableArray(classes));
+    }
+  } else if (directive.modifiers.includes('attr')) {
+    if (directive.modifiers.includes('remove') !== isOffline) {
+      el.rawNode().setAttribute(directive.value, true);
+    } else {
+      el.rawNode().removeAttribute(directive.value);
+    }
+  } else if (!el.directives.get('model')) {
+    el.rawNode().style.display = isOffline ? 'inline-block' : 'none';
+  }
+}
+
+/***/ }),
+
+/***/ "./src/js/Component/Polling.js":
+/*!*************************************!*\
+  !*** ./src/js/Component/Polling.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _action_method__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/action/method */ "./src/js/action/method.js");
+/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function () {
+  _Store__WEBPACK_IMPORTED_MODULE_1__["default"].registerHook('elementInitialized', function (el, component) {
+    if (el.directives.missing('poll')) return;
+    fireActionOnInterval(el, component);
+  });
+});
+
+function fireActionOnInterval(el, component) {
+  var directive = el.directives.get('poll');
+  var method = directive.method || '$refresh';
+  setInterval(function () {
+    // Don't poll when the tab is in the background.
+    // The "Math.random" business effectivlly prevents 95% of requests
+    // from executing. We still want "some" requests to get through.
+    if (_Store__WEBPACK_IMPORTED_MODULE_1__["default"].livewireIsInBackground && Math.random() < .95) return; // Don't poll if livewire is offline as well.
+
+    if (_Store__WEBPACK_IMPORTED_MODULE_1__["default"].livewireIsOffline) return;
+    component.addAction(new _action_method__WEBPACK_IMPORTED_MODULE_0__["default"](method, directive.params, el));
+  }, directive.durationOr(2000));
+}
+
+/***/ }),
+
 /***/ "./src/js/Component/PrefetchManager.js":
 /*!*********************************************!*\
   !*** ./src/js/Component/PrefetchManager.js ***!
@@ -1709,7 +2076,7 @@ function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArra
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
 
-function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
@@ -2720,370 +3087,122 @@ function (_Action) {
 
 /***/ }),
 
-/***/ "./src/js/component/DirtyStates.js":
-/*!*****************************************!*\
-  !*** ./src/js/component/DirtyStates.js ***!
-  \*****************************************/
+/***/ "./src/js/connection/drivers/echo_http.js":
+/*!************************************************!*\
+  !*** ./src/js/connection/drivers/echo_http.js ***!
+  \************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _dom_dom_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/dom/dom_element */ "./src/js/dom/dom_element.js");
-/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+/* harmony default export */ __webpack_exports__["default"] = ({
+  onError: null,
+  onMessage: null,
+  init: function init() {//
+  },
+  sendMessage: function sendMessage(payload) {
+    var _this = this;
 
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+    console.log('senMessage'); // Forward the query string for the ajax requests.
 
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function () {
-  _Store__WEBPACK_IMPORTED_MODULE_1__["default"].registerHook('componentInitialized', function (component) {
-    component.dirtyElsByRef = {};
-    component.dirtyEls = [];
-    registerListener(component);
-  });
-  _Store__WEBPACK_IMPORTED_MODULE_1__["default"].registerHook('elementInitialized', function (el, component) {
-    if (el.directives.missing('dirty')) return;
-    var refNames = el.directives.has('target') && el.directives.get('target').value.split(',').map(function (s) {
-      return s.trim();
-    });
-    addDirtyEls(component, el, refNames);
-  });
-});
-
-function addDirtyEls(component, el, targetRefs) {
-  if (targetRefs) {
-    targetRefs.forEach(function (targetRef) {
-      if (component.dirtyElsByRef[targetRef]) {
-        component.dirtyElsByRef[targetRef].push(el);
-      } else {
-        component.dirtyElsByRef[targetRef] = [el];
+    fetch("".concat(window.livewire_app_url, "/livewire/message/").concat(payload.name).concat(window.location.search), {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      // This enables "cookies".
+      credentials: "same-origin",
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/html, application/xhtml+xml',
+        'X-CSRF-TOKEN': this.getCSRFToken(),
+        'X-Livewire': true,
+        'X-Socket-ID': window.XSocketId || 'UNNN'
       }
-    });
-  } else {
-    component.dirtyEls.push(el);
-  }
-}
+    }).then(function (response) {
+      if (response.ok) {
+        response.text().then(function (response) {
+          if (_this.isOutputFromDump(response)) {
+            _this.onError(payload);
 
-function registerListener(component) {
-  component.el.addEventListener('input', function (e) {
-    var el = new _dom_dom_element__WEBPACK_IMPORTED_MODULE_0__["default"](e.target);
-    var allEls = [];
-
-    if (el.directives.has('ref') && component.dirtyElsByRef[el.directives.get('ref').value]) {
-      allEls.push.apply(allEls, _toConsumableArray(component.dirtyElsByRef[el.directives.get('ref').value]));
-    }
-
-    if (el.directives.has('dirty')) {
-      allEls.push.apply(allEls, _toConsumableArray(component.dirtyEls.filter(function (dirtyEl) {
-        return dirtyEl.directives.get('model').value === el.directives.get('model').value;
-      })));
-    }
-
-    if (allEls.length < 1) return;
-
-    if (el.directives.missing('model')) {
-      console.warn('`wire:model` must be present on any element that uses `wire:dirty` or is a `wire:dirty` target.');
-    }
-
-    var isDirty = el.valueFromInput(component) != component.data[el.directives.get('model').value];
-    allEls.forEach(function (el) {
-      setDirtyState(el, isDirty);
-    });
-  });
-}
-
-function setDirtyState(el, isDirty) {
-  var directive = el.directives.get('dirty');
-
-  if (directive.modifiers.includes('class')) {
-    var classes = directive.value.split(' ');
-
-    if (directive.modifiers.includes('remove') !== isDirty) {
-      var _el$classList;
-
-      (_el$classList = el.classList).add.apply(_el$classList, _toConsumableArray(classes));
-    } else {
-      var _el$classList2;
-
-      (_el$classList2 = el.classList).remove.apply(_el$classList2, _toConsumableArray(classes));
-    }
-  } else if (directive.modifiers.includes('attr')) {
-    if (directive.modifiers.includes('remove') !== isDirty) {
-      el.setAttribute(directive.value, true);
-    } else {
-      el.removeAttrsibute(directive.value);
-    }
-  } else if (!el.directives.get('model')) {
-    el.el.style.display = isDirty ? 'inline-block' : 'none';
-  }
-}
-
-/***/ }),
-
-/***/ "./src/js/component/LoadingStates.js":
-/*!*******************************************!*\
-  !*** ./src/js/component/LoadingStates.js ***!
-  \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function () {
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('componentInitialized', function (component) {
-    component.loadingElsByRef = {};
-    component.loadingEls = [];
-    component.currentlyActiveLoadingEls = [];
-  });
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementInitialized', function (el, component) {
-    if (el.directives.missing('loading')) return;
-    var directive = el.directives.get('loading');
-    var refNames = el.directives.get('target') && el.directives.get('target').value.split(',').map(function (s) {
-      return s.trim();
-    });
-    addLoadingEl(component, el, directive.value, refNames, directive.modifiers.includes('remove'));
-  });
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('messageSent', function (component, message) {
-    setLoading(component, message.refs);
-  });
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('messageFailed', function (component) {
-    unsetLoading(component);
-  });
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('responseReceived', function (component) {
-    unsetLoading(component);
-  });
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementRemoved', function (el, component) {
-    removeLoadingEl(component, el);
-  });
-});
-
-function addLoadingEl(component, el, value, targetNames, remove) {
-  if (targetNames) {
-    targetNames.forEach(function (targetNames) {
-      if (component.loadingElsByRef[targetNames]) {
-        component.loadingElsByRef[targetNames].push({
-          el: el,
-          value: value,
-          remove: remove
+            _this.showHtmlModal(response);
+          } else {
+            _this.onMessage.call(_this, JSON.parse(response));
+          }
         });
       } else {
-        component.loadingElsByRef[targetNames] = [{
-          el: el,
-          value: value,
-          remove: remove
-        }];
+        response.text().then(function (response) {
+          _this.onError(payload);
+
+          _this.showHtmlModal(response);
+        });
       }
+    })["catch"](function () {
+      _this.onError(payload);
     });
-  } else {
-    component.loadingEls.push({
-      el: el,
-      value: value,
-      remove: remove
-    });
-  }
-}
+  },
+  isOutputFromDump: function isOutputFromDump(output) {
+    return !!output.match(/<script>Sfdump\(".+"\)<\/script>/);
+  },
+  getCSRFToken: function getCSRFToken() {
+    var tokenTag = document.head.querySelector('meta[name="csrf-token"]');
+    var token;
 
-function removeLoadingEl(component, el) {
-  component.loadingEls = component.loadingEls.filter(function (loadingEl) {
-    return !loadingEl.el.isSameNode(el);
-  });
-
-  if (el.ref in component.loadingElsByRef) {
-    delete component.loadingElsByRef[el.ref];
-  }
-}
-
-function setLoading(component, refs) {
-  var refEls = refs.map(function (ref) {
-    return component.loadingElsByRef[ref];
-  }).filter(function (el) {
-    return el;
-  }).flat();
-  var allEls = component.loadingEls.concat(refEls);
-  allEls.forEach(function (el) {
-    var directive = el.el.directives.get('loading');
-    el = el.el.el; // I'm so sorry @todo
-
-    if (directive.modifiers.includes('class')) {
-      // This is because wire:loading.class="border border-red"
-      // wouldn't work with classList.add.
-      var classes = directive.value.split(' ');
-
-      if (directive.modifiers.includes('remove')) {
-        var _el$classList;
-
-        (_el$classList = el.classList).remove.apply(_el$classList, _toConsumableArray(classes));
-      } else {
-        var _el$classList2;
-
-        (_el$classList2 = el.classList).add.apply(_el$classList2, _toConsumableArray(classes));
+    if (!tokenTag) {
+      if (!window.livewire_token) {
+        throw new Error('Whoops, looks like you haven\'t added a "csrf-token" meta tag');
       }
-    } else if (directive.modifiers.includes('attr')) {
-      if (directive.modifiers.includes('remove')) {
-        el.removeAttribute(directive.value);
-      } else {
-        el.setAttribute(directive.value, true);
-      }
+
+      token = window.livewire_token;
     } else {
-      el.style.display = 'inline-block';
+      token = tokenTag.content;
     }
-  });
-  component.currentlyActiveLoadingEls = allEls;
-}
 
-function unsetLoading(component) {
-  component.currentlyActiveLoadingEls.forEach(function (el) {
-    var directive = el.el.directives.get('loading');
-    el = el.el.el; // I'm so sorry @todo
+    return token;
+  },
+  // This code and concept is all Jonathan Reinink - thanks main!
+  showHtmlModal: function showHtmlModal(html) {
+    var _this2 = this;
 
-    if (directive.modifiers.includes('class')) {
-      var classes = directive.value.split(' ');
-
-      if (directive.modifiers.includes('remove')) {
-        var _el$classList3;
-
-        (_el$classList3 = el.classList).add.apply(_el$classList3, _toConsumableArray(classes));
-      } else {
-        var _el$classList4;
-
-        (_el$classList4 = el.classList).remove.apply(_el$classList4, _toConsumableArray(classes));
-      }
-    } else if (directive.modifiers.includes('attr')) {
-      if (directive.modifiers.includes('remove')) {
-        el.setAttribute(directive.value);
-      } else {
-        el.removeAttribute(directive.value, true);
-      }
-    } else {
-      el.style.display = 'none';
-    }
-  });
-  component.currentlyActiveLoadingEls = [];
-}
-
-/***/ }),
-
-/***/ "./src/js/component/OfflineStates.js":
-/*!*******************************************!*\
-  !*** ./src/js/component/OfflineStates.js ***!
-  \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
-
-var offlineEls = [];
-/* harmony default export */ __webpack_exports__["default"] = (function () {
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementInitialized', function (el) {
-    if (el.directives.missing('offline')) return;
-    offlineEls.push(el);
-  });
-  window.addEventListener('offline', function () {
-    _Store__WEBPACK_IMPORTED_MODULE_0__["default"].livewireIsOffline = true;
-    offlineEls.forEach(function (el) {
-      toggleOffline(el, true);
+    var page = document.createElement('html');
+    page.innerHTML = html;
+    page.querySelectorAll('a').forEach(function (a) {
+      return a.setAttribute('target', '_top');
     });
-  });
-  window.addEventListener('online', function () {
-    _Store__WEBPACK_IMPORTED_MODULE_0__["default"].livewireIsOffline = false;
-    offlineEls.forEach(function (el) {
-      toggleOffline(el, false);
+    var modal = document.createElement('div');
+    modal.id = 'burst-error';
+    modal.style.position = 'fixed';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.padding = '50px';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, .6)';
+    modal.style.zIndex = 200000;
+    var iframe = document.createElement('iframe');
+    iframe.style.backgroundColor = '#17161A';
+    iframe.style.borderRadius = '5px';
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    modal.appendChild(iframe);
+    document.body.prepend(modal);
+    document.body.style.overflow = 'hidden';
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(page.outerHTML);
+    iframe.contentWindow.document.close(); // Close on click.
+
+    modal.addEventListener('click', function () {
+      return _this2.hideHtmlModal(modal);
+    }); // Close on escape key press.
+
+    modal.setAttribute('tabindex', 0);
+    modal.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') _this2.hideHtmlModal(modal);
     });
-  });
-  _Store__WEBPACK_IMPORTED_MODULE_0__["default"].registerHook('elementRemoved', function (el) {
-    offlineEls = offlineEls.filter(function (el) {
-      return !el.isSameNode(el);
-    });
-  });
+    modal.focus();
+  },
+  hideHtmlModal: function hideHtmlModal(modal) {
+    modal.outerHTML = '';
+    document.body.style.overflow = 'visible';
+  }
 });
-
-function toggleOffline(el, isOffline) {
-  var directive = el.directives.get('offline');
-
-  if (directive.modifiers.includes('class')) {
-    var classes = directive.value.split(' ');
-
-    if (directive.modifiers.includes('remove') !== isOffline) {
-      var _el$rawNode$classList;
-
-      (_el$rawNode$classList = el.rawNode().classList).add.apply(_el$rawNode$classList, _toConsumableArray(classes));
-    } else {
-      var _el$rawNode$classList2;
-
-      (_el$rawNode$classList2 = el.rawNode().classList).remove.apply(_el$rawNode$classList2, _toConsumableArray(classes));
-    }
-  } else if (directive.modifiers.includes('attr')) {
-    if (directive.modifiers.includes('remove') !== isOffline) {
-      el.rawNode().setAttribute(directive.value, true);
-    } else {
-      el.rawNode().removeAttribute(directive.value);
-    }
-  } else if (!el.directives.get('model')) {
-    el.rawNode().style.display = isOffline ? 'inline-block' : 'none';
-  }
-}
-
-/***/ }),
-
-/***/ "./src/js/component/Polling.js":
-/*!*************************************!*\
-  !*** ./src/js/component/Polling.js ***!
-  \*************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _action_method__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/action/method */ "./src/js/action/method.js");
-/* harmony import */ var _Store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/Store */ "./src/js/Store.js");
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function () {
-  _Store__WEBPACK_IMPORTED_MODULE_1__["default"].registerHook('elementInitialized', function (el, component) {
-    if (el.directives.missing('poll')) return;
-    fireActionOnInterval(el, component);
-  });
-});
-
-function fireActionOnInterval(el, component) {
-  var directive = el.directives.get('poll');
-  var method = directive.method || '$refresh';
-  setInterval(function () {
-    // Don't poll when the tab is in the background.
-    // The "Math.random" business effectivlly prevents 95% of requests
-    // from executing. We still want "some" requests to get through.
-    if (_Store__WEBPACK_IMPORTED_MODULE_1__["default"].livewireIsInBackground && Math.random() < .95) return; // Don't poll if livewire is offline as well.
-
-    if (_Store__WEBPACK_IMPORTED_MODULE_1__["default"].livewireIsOffline) return;
-    component.addAction(new _action_method__WEBPACK_IMPORTED_MODULE_0__["default"](method, directive.params, el));
-  }, directive.durationOr(2000));
-}
 
 /***/ }),
 
@@ -3214,9 +3333,12 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _http__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./http */ "./src/js/connection/drivers/http.js");
+/* harmony import */ var _echo_http__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./echo_http */ "./src/js/connection/drivers/echo_http.js");
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  http: _http__WEBPACK_IMPORTED_MODULE_0__["default"]
+  http: _http__WEBPACK_IMPORTED_MODULE_0__["default"],
+  echo_http: _echo_http__WEBPACK_IMPORTED_MODULE_1__["default"]
 });
 
 /***/ }),
@@ -4614,7 +4736,7 @@ function syncBooleanAttrProp(fromEl, toEl, name) {
     fromEl[name] = toEl[name];
 
     if (fromEl[name]) {
-      fromEl.setAttribute(name);
+      fromEl.setAttribute(name, '');
     } else {
       fromEl.removeAttribute(name);
     }
@@ -5157,10 +5279,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var whatwg_fetch__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! whatwg-fetch */ "./node_modules/whatwg-fetch/fetch.js");
 /* harmony import */ var promise_polyfill_src_polyfill__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! promise-polyfill/src/polyfill */ "./node_modules/promise-polyfill/src/polyfill.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./util */ "./src/js/util/index.js");
-/* harmony import */ var _component_LoadingStates__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @/component/LoadingStates */ "./src/js/component/LoadingStates.js");
-/* harmony import */ var _component_DirtyStates__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @/component/DirtyStates */ "./src/js/component/DirtyStates.js");
-/* harmony import */ var _component_OfflineStates__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @/component/OfflineStates */ "./src/js/component/OfflineStates.js");
-/* harmony import */ var _component_Polling__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @/component/Polling */ "./src/js/component/Polling.js");
+/* harmony import */ var _Component_LoadingStates__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @/Component/LoadingStates */ "./src/js/Component/LoadingStates.js");
+/* harmony import */ var _Component_DirtyStates__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @/Component/DirtyStates */ "./src/js/Component/DirtyStates.js");
+/* harmony import */ var _Component_OfflineStates__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @/Component/OfflineStates */ "./src/js/Component/OfflineStates.js");
+/* harmony import */ var _Component_Polling__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @/Component/Polling */ "./src/js/Component/Polling.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -5310,10 +5432,10 @@ if (!window.Livewire) {
   window.Livewire = Livewire;
 }
 
-Object(_component_LoadingStates__WEBPACK_IMPORTED_MODULE_9__["default"])();
-Object(_component_DirtyStates__WEBPACK_IMPORTED_MODULE_10__["default"])();
-Object(_component_OfflineStates__WEBPACK_IMPORTED_MODULE_11__["default"])();
-Object(_component_Polling__WEBPACK_IMPORTED_MODULE_12__["default"])();
+Object(_Component_LoadingStates__WEBPACK_IMPORTED_MODULE_9__["default"])();
+Object(_Component_DirtyStates__WEBPACK_IMPORTED_MODULE_10__["default"])();
+Object(_Component_OfflineStates__WEBPACK_IMPORTED_MODULE_11__["default"])();
+Object(_Component_Polling__WEBPACK_IMPORTED_MODULE_12__["default"])();
 Object(_util__WEBPACK_IMPORTED_MODULE_8__["dispatch"])('livewire:available');
 /* harmony default export */ __webpack_exports__["default"] = (Livewire);
 
@@ -5666,7 +5788,7 @@ function walk(root, callback) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! /Users/calebporzio/Documents/Code/sites/livewire/src/js/index.js */"./src/js/index.js");
+module.exports = __webpack_require__(/*! /home/donkfather/projects/livewire/src/js/index.js */"./src/js/index.js");
 
 
 /***/ })

@@ -7,7 +7,6 @@ require('laravel-mix-merge-manifest');
 const outputFileName = process.env.NODE_ENV === 'production'
     ? 'livewire.min.js'
     : 'livewire.js'
-
 mix
     .js('src/js/index.js', outputFileName)
     .setPublicPath('dist')
@@ -20,7 +19,8 @@ mix.webpackConfig({
     },
     resolve: {
         alias: {
-            '@': __dirname + '/src/js'
+            "@": path.resolve(__dirname, './src/js'),
         }
     }
 });
+
