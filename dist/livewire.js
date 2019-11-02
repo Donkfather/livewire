@@ -3104,8 +3104,7 @@ __webpack_require__.r(__webpack_exports__);
   sendMessage: function sendMessage(payload) {
     var _this = this;
 
-    console.log('senMessage'); // Forward the query string for the ajax requests.
-
+    // Forward the query string for the ajax requests.
     fetch("".concat(window.livewire_app_url, "/livewire/message/").concat(payload.name).concat(window.location.search), {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -3116,7 +3115,7 @@ __webpack_require__.r(__webpack_exports__);
         'Accept': 'text/html, application/xhtml+xml',
         'X-CSRF-TOKEN': this.getCSRFToken(),
         'X-Livewire': true,
-        'X-Socket-ID': window.XSocketId || 'UNNN'
+        'X-Socket-ID': window.XSocketId || null
       }
     }).then(function (response) {
       if (response.ok) {

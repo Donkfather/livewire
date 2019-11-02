@@ -2,13 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2405fd12-91b7-43a0-a436-9dc1c9e93e87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/dist/livewire.js" beforeDir="false" afterPath="$PROJECT_DIR$/dist/livewire.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/livewire.min.js" beforeDir="false" afterPath="$PROJECT_DIR$/dist/livewire.min.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/mix-manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/dist/mix-manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/js/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/js/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webpack.mix.js" beforeDir="false" afterPath="$PROJECT_DIR$/webpack.mix.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/js/connection/drivers/echo_http.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/js/connection/drivers/echo_http.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -88,7 +83,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1572707542704</updated>
-      <workItem from="1572707543947" duration="281000" />
+      <workItem from="1572707543947" duration="690000" />
     </task>
     <servers />
   </component>

@@ -7,7 +7,6 @@ export default {
     },
 
     sendMessage(payload) {
-        console.log('senMessage')
         // Forward the query string for the ajax requests.
         fetch(`${window.livewire_app_url}/livewire/message/${payload.name}${window.location.search}`, {
             method: 'POST',
@@ -19,7 +18,7 @@ export default {
                 'Accept': 'text/html, application/xhtml+xml',
                 'X-CSRF-TOKEN': this.getCSRFToken(),
                 'X-Livewire': true,
-                'X-Socket-ID': window.XSocketId || 'UNNN',
+                'X-Socket-ID': window.XSocketId || null,
             },
         }).then(response => {
             if (response.ok) {
